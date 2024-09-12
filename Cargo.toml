@@ -1,0 +1,9 @@
+[package]
+name = "NetFlex"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+pcap = "0.10"
+tokio = { version = "1.25", features = ["full"] }
+async-trait = "0.1"
