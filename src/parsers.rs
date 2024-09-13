@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use crate::monitors::Packet;
+use crate::packet::ClonablePacket as Packet;
 use crate::protocols::{arp::ArpParser, dns::DnsParser, http::HttpParser, coap::CoapParser, raw::RawParser};
 
 #[async_trait]

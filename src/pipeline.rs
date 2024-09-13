@@ -1,4 +1,5 @@
-use crate::monitors::{Packet, TrafficMonitor};
+use crate::monitors::TrafficMonitor;
+use crate::packet::ClonablePacket as Packet;
 use crate::parsers::ParserRegistry;
 use crate::storage::StorageManager;
 use std::sync::Arc;
@@ -20,7 +21,8 @@ impl TrafficPipeline {
             async move {
                 loop {
                     let packet: Packet = interface_monitor.capture_traffic().await;
-                    let parser = parser_registry.get_parser(&packet.0);
+                    println!("data: {packet:?}");
+                    let parser = parser_registry.get_parser(&packet.raw);
                     let parsed_data = parser.parse(&packet);
                     storage_manager.store_data(parsed_data);
 

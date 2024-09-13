@@ -1,9 +1,7 @@
 use pcap::Capture;
 use async_trait::async_trait;
 use tokio::task;
-
-#[derive(Debug, Clone)]
-pub struct Packet(pub Vec<u8>);
+use crate::packet::ClonablePacket as Packet;
 
 #[async_trait]
 pub trait TrafficMonitor {
@@ -24,7 +22,8 @@ impl TrafficMonitor for InterfaceMonitor {
                     .immediate_mode(true)
                     .open().unwrap();
                 let packet = cap.next_packet().unwrap();
-                Packet(packet.data.to_vec())
+                // Parsing the raw packet
+                Packet::new(packet.data.to_vec())
             }
         }).await.unwrap()
     }

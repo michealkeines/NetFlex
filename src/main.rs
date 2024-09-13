@@ -4,6 +4,7 @@ mod pipeline;
 mod storage;
 mod protocols;
 mod config;  // Import the config module
+mod packet;
 
 use std::sync::Arc;
 use tokio::task::JoinSet;
