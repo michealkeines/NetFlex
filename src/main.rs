@@ -2,32 +2,61 @@ mod monitors;
 mod parsers;
 mod pipeline;
 mod storage;
-
 mod protocols;
+mod config;  // Import the config module
 
 use std::sync::Arc;
+use tokio::task::JoinSet;
 use pipeline::TrafficPipeline;
-use monitors::{EthernetMonitor, WiFiMonitor, BLEMonitor};
+use monitors::InterfaceMonitor;
 use parsers::ParserRegistry;
 use storage::StorageManager;
+use config::{load_config, Config};  // Import load_config function and Config struct
 
 #[tokio::main]
 async fn main() {
-    let ethernet_monitor = Arc::new(EthernetMonitor { device_name: "eth0".to_string() });
-    let wifi_monitor = Arc::new(WiFiMonitor { device_name: "en0".to_string() });
-    let ble_monitor = Arc::new(BLEMonitor { device_name: "ble0".to_string() });
+    // Load config from a custom file
+    let config: Config = load_config("custom_config.json").await;
 
+    // Shared components
     let parser_registry = Arc::new(ParserRegistry::new());
-
     let storage_manager = Arc::new(StorageManager);
 
-    let pipeline = TrafficPipeline {
-        ethernet_monitor,
-        wifi_monitor,
-        ble_monitor,
-        parser_registry,
-        storage_manager,
-    };
+    // Optional: Access future settings (log level, etc.)
+    if let Some(settings) = &config.settings {
+        if let Some(log_level) = &settings.log_level {
+            println!("Log level set to: {}", log_level);
+            // Set up logging if needed
+        }
+        if let Some(storage_path) = &settings.storage_path {
+            println!("Storage path set to: {}", storage_path);
+            // Use the storage path if needed
+        }
+    }
 
-    pipeline.process_pipeline().await;
+    // Create a JoinSet to manage tasks
+    let mut join_set = JoinSet::new();
+
+    // Start pipelines for each interface in parallel
+    for interface in config.network.interfaces {
+        let interface_monitor = Arc::new(InterfaceMonitor { device_name: interface.clone() });
+        let pipeline = TrafficPipeline {
+            interface_monitor,
+            parser_registry: Arc::clone(&parser_registry),
+            storage_manager: Arc::clone(&storage_manager),
+        };
+
+        // Spawn each pipeline and add to JoinSet
+        join_set.spawn(async move {
+            pipeline.process_pipeline().await;
+        });
+    }
+
+    // Process tasks as they complete
+    while let Some(result) = join_set.join_next().await {
+        match result {
+            Ok(_) => println!("Pipeline task completed successfully."),
+            Err(e) => eprintln!("Pipeline task failed: {:?}", e),
+        }
+    }
 }

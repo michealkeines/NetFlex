@@ -1,0 +1,10 @@
+{
+  "network": {
+    "interfaces": ["en0"]
+  },
+  "settings": {
+    "log_level": "info",
+    "storage_path": "/var/log/network_traffic"
+  }
+}
+
