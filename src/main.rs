@@ -5,8 +5,10 @@ mod storage;
 mod protocols;
 mod config;  // Import the config module
 mod packet;
+mod extractor;
 
 use std::sync::Arc;
+use extractor::InformationExtractor;
 use tokio::task::JoinSet;
 use pipeline::TrafficPipeline;
 use monitors::InterfaceMonitor;
@@ -22,6 +24,7 @@ async fn main() {
     // Shared components
     let parser_registry = Arc::new(ParserRegistry::new());
     let storage_manager = Arc::new(StorageManager);
+    let info_extractor = Arc::new(InformationExtractor::new());
 
     // Optional: Access future settings (log level, etc.)
     if let Some(settings) = &config.settings {
@@ -45,6 +48,7 @@ async fn main() {
             interface_monitor,
             parser_registry: Arc::clone(&parser_registry),
             storage_manager: Arc::clone(&storage_manager),
+            info_extractor: Arc::clone(&info_extractor),
         };
 
         // Spawn each pipeline and add to JoinSet
