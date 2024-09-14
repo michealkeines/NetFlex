@@ -47,7 +47,7 @@ impl PartialEq for PacketInfo {
 }
 
 pub struct InformationExtractor {
-    db: Arc<DashSet<PacketInfo>>, // Use DashSet for storing unique PacketInfo
+    pub db: Arc<DashSet<PacketInfo>>, // Use DashSet for storing unique PacketInfo
 }
 
 impl InformationExtractor {
@@ -110,7 +110,7 @@ impl InformationExtractor {
                 info.dst_ip = Some(Ipv4Addr::from(arp.get_target_proto_addr()).to_string());
             }
         }
-        println!("info: {info:?}");
+       // println!("info: {info:?}");
         // Store extracted information in the DashSet (only unique entries will be stored)
         self.db.insert(info);
     }

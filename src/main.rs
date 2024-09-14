@@ -1,19 +1,16 @@
 mod monitors;
-mod parsers;
 mod pipeline;
-mod storage;
-mod protocols;
 mod config;  // Import the config module
 mod packet;
 mod extractor;
+
+mod probe;
 
 use std::sync::Arc;
 use extractor::InformationExtractor;
 use tokio::task::JoinSet;
 use pipeline::TrafficPipeline;
 use monitors::InterfaceMonitor;
-use parsers::ParserRegistry;
-use storage::StorageManager;
 use config::{load_config, Config};  // Import load_config function and Config struct
 
 #[tokio::main]
@@ -21,9 +18,6 @@ async fn main() {
     // Load config from a custom file
     let config: Config = load_config("custom_config.json").await;
 
-    // Shared components
-    let parser_registry = Arc::new(ParserRegistry::new());
-    let storage_manager = Arc::new(StorageManager);
     let info_extractor = Arc::new(InformationExtractor::new());
 
     // Optional: Access future settings (log level, etc.)
@@ -46,8 +40,6 @@ async fn main() {
         let interface_monitor = Arc::new(InterfaceMonitor { device_name: interface.clone() });
         let pipeline = TrafficPipeline {
             interface_monitor,
-            parser_registry: Arc::clone(&parser_registry),
-            storage_manager: Arc::clone(&storage_manager),
             info_extractor: Arc::clone(&info_extractor),
         };
 
