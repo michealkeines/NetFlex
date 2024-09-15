@@ -4,6 +4,10 @@
 
 NetFlex is designed to capture and analyze network traffic in real-time. It extracts useful metadata from network packets and probes specific protocols (HTTP, COAP, MQTT) to validate active services or devices on the network. The system is built using Rust and employs asynchronous execution using tokio to handle multiple tasks efficiently.
 
+## UML
+
+![UML Diagram](netflex.uml.png)
+
 ## Features
 
 `Packet Capture & Extraction:` Extracts metadata such as MAC addresses, IP addresses, and transport layer ports from network packets.

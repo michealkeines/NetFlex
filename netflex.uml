@@ -1,0 +1,79 @@
+@startuml
+title Network Monitoring System
+
+package "Configuration" {
+    class Config {
+        +network: NetworkConfig
+        +settings: Option<SettingsConfig>
+        +load_config(file_path: &str): Config
+    }
+
+    class NetworkConfig {
+        +interfaces: Vec<String>
+    }
+
+    class SettingsConfig {
+        +log_level: Option<String>
+        +storage_path: Option<String>
+    }
+}
+
+package "Packet Information" {
+    class PacketInfo {
+        +src_mac: Option<String>
+        +dst_mac: Option<String>
+        +src_ip: Option<String>
+        +dst_ip: Option<String>
+        +src_port: Option<u16>
+        +dst_port: Option<u16>
+        +hash()
+        +eq()
+    }
+
+    class ClonablePacket {
+        +ethernet: Option<EthernetPacket>
+        +ipv4: Option<Ipv4Packet>
+        +ipv6: Option<Ipv6Packet>
+        +tcp: Option<TcpPacket>
+        +udp: Option<UdpPacket>
+        +arp: Option<ArpPacket>
+    }
+}
+
+package "Extractor" {
+    class InformationExtractor {
+        +db: Arc<DashSet<PacketInfo>>
+        +new(): InformationExtractor
+        +extract_and_store(packet: &ClonablePacket)
+        +get_all_packet_info(): Vec<PacketInfo>
+    }
+}
+
+package "Probing" {
+    class ValidResponse {
+        +protocol: String
+        +version: Option<String>
+        +response_metadata: Option<String>
+        +packet_info: PacketInfo
+    }
+
+    class ProtocolProber {
+        +db: Arc<DashSet<PacketInfo>>
+        +valid_responses: Arc<DashSet<ValidResponse>>
+        +new(db: Arc<DashSet<PacketInfo>>): ProtocolProber
+        +active_probe(): void
+        +probe_http(packet: PacketInfo): Option<ValidResponse>
+        +probe_coap(packet: PacketInfo): Option<ValidResponse>
+        +probe_mqtt(packet: PacketInfo): Option<ValidResponse>
+    }
+}
+
+Config --> NetworkConfig
+Config --> SettingsConfig
+InformationExtractor --> PacketInfo
+ProtocolProber --> PacketInfo
+ProtocolProber --> ValidResponse
+ProtocolProber --> InformationExtractor
+ValidResponse --> PacketInfo
+
+@enduml
