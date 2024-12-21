@@ -1,17 +1,27 @@
 use std::net::Ipv4Addr;
 use dashmap::DashSet; // Use DashSet for uniqueness
-use pnet::packet::{
-    ethernet::EthernetPacket, 
-    ipv4::Ipv4Packet, 
-    ipv6::Ipv6Packet, 
-    tcp::TcpPacket, 
-    udp::UdpPacket, 
-    arp::ArpPacket, 
-    Packet
-};
+
 use std::sync::Arc;
 use crate::packet::ClonablePacket;
 use std::hash::{Hash, Hasher};
+use crate::protocol::ProtocolParser;
+use crate::protocol::{MqttParser, HttpParser, CoapParser};
+
+// Struct to hold parsed information for different protocols
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct ProtocolInfo {
+    pub protocol_name: String,
+    pub data: String,
+}
+
+impl ProtocolInfo {
+    pub fn new(protocol_name: &str, data: &str) -> Self {
+        ProtocolInfo {
+            protocol_name: protocol_name.to_string(),
+            data: data.to_string(),
+        }
+    }
+}
 
 // Implement Hash and PartialEq for PacketInfo to ensure uniqueness
 #[derive(Debug, Clone, Eq)]
@@ -22,6 +32,7 @@ pub struct PacketInfo {
     pub dst_ip: Option<String>,
     pub src_port: Option<u16>,
     pub dst_port: Option<u16>,
+    pub protocol_info: Option<ProtocolInfo>
 }
 
 impl Hash for PacketInfo {
@@ -32,6 +43,7 @@ impl Hash for PacketInfo {
         self.dst_ip.hash(state);
         self.src_port.hash(state);
         self.dst_port.hash(state);
+        self.protocol_info.hash(state)
     }
 }
 
@@ -42,18 +54,26 @@ impl PartialEq for PacketInfo {
         self.src_ip == other.src_ip &&
         self.dst_ip == other.dst_ip &&
         self.src_port == other.src_port &&
-        self.dst_port == other.dst_port
+        self.dst_port == other.dst_port &&
+        self.protocol_info == other.protocol_info
     }
 }
 
+
 pub struct InformationExtractor {
-    pub db: Arc<DashSet<PacketInfo>>, // Use DashSet for storing unique PacketInfo
+    pub db: Arc<DashSet<PacketInfo>>,
+    protocol_parsers: Vec<Box<dyn ProtocolParser + Sync + Send>>, // List of protocol parsers
 }
 
 impl InformationExtractor {
     pub fn new() -> Self {
         InformationExtractor {
-            db: Arc::new(DashSet::new()), // Initialize the DashSet
+            db: Arc::new(DashSet::new()),
+            protocol_parsers: vec![
+                Box::new(MqttParser),
+                Box::new(CoapParser),
+                Box::new(HttpParser),
+            ],
         }
     }
 
@@ -65,6 +85,7 @@ impl InformationExtractor {
             dst_ip: None,
             src_port: None,
             dst_port: None,
+            protocol_info: None
         };
 
         // Extract MAC addresses
@@ -110,6 +131,17 @@ impl InformationExtractor {
                 info.dst_ip = Some(Ipv4Addr::from(arp.get_target_proto_addr()).to_string());
             }
         }
+
+        // Now, parse the protocol-specific data using protocol parsers
+        for parser in &self.protocol_parsers {
+            if let Some(protocol_info) = parser.parse(&packet.raw) {
+                // Store or process the protocol info
+                println!("Extracted from {}: {}", protocol_info.protocol_name, protocol_info.data);
+                info.protocol_info = Some(protocol_info);
+                break;
+            }
+        }
+
        // println!("info: {info:?}");
         // Store extracted information in the DashSet (only unique entries will be stored)
         self.db.insert(info);

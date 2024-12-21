@@ -10,6 +10,8 @@ pub struct Config {
 #[derive(Deserialize)]
 pub struct NetworkConfig {
     pub interfaces: Vec<String>,
+    pub mode: Option<String>,  // Mode to determine live or file monitoring
+    pub pcap_file: Option<String>, // Optional PCAP file for file monitoring mode
 }
 
 #[derive(Deserialize)]

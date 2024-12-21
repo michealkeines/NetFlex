@@ -1,6 +1,8 @@
 {
   "network": {
-    "interfaces": ["en0"]
+    "interfaces": ["en0"],
+    "mode": "file",
+    "pcap_file": "/Users/michealkeines/Downloads/test.pcap"
   },
   "settings": {
     "log_level": "info",

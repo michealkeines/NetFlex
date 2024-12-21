@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use pcap::Capture;
 use async_trait::async_trait;
 use tokio::task;
@@ -25,6 +26,33 @@ impl TrafficMonitor for InterfaceMonitor {
                 // Parsing the raw packet
                 Packet::new(packet.data.to_vec())
             }
+        }).await.unwrap()
+    }
+}
+
+pub struct FileMonitor {
+    pub cap: Arc<Mutex<Capture<pcap::Offline>>>, // Store the capture session in a thread-safe Arc<Mutex<>>
+}
+
+impl FileMonitor {
+    pub fn new(file_path: String) -> Self {
+        let cap = Capture::from_file(&file_path).expect("Failed to open PCAP file");
+        FileMonitor {
+            cap: Arc::new(Mutex::new(cap)),
+        }
+    }
+}
+
+#[async_trait]
+impl TrafficMonitor for FileMonitor {
+    async fn capture_traffic(&self) -> Packet {
+        let cap = Arc::clone(&self.cap); // Clone the Arc for thread-safe access
+        task::spawn_blocking(move || {
+            let mut cap = cap.lock().expect("Failed to lock PCAP capture");
+            let packet = cap.next_packet().expect("No more packets or an error occurred");
+            println!("packet: {:?}", packet);
+            // Parsing the raw packet
+            Packet::new(packet.data.to_vec())
         }).await.unwrap()
     }
 }
