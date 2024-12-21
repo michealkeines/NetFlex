@@ -49,10 +49,13 @@ impl TrafficMonitor for FileMonitor {
         let cap = Arc::clone(&self.cap); // Clone the Arc for thread-safe access
         task::spawn_blocking(move || {
             let mut cap = cap.lock().expect("Failed to lock PCAP capture");
-            let packet = cap.next_packet().expect("No more packets or an error occurred");
-            println!("packet: {:?}", packet);
+            let next = cap.next_packet();
+            if let Ok(packet) = next {
+                Packet::new(packet.data.to_vec());
+            }
+           // println!("packet: {:?}", packet);
             // Parsing the raw packet
-            Packet::new(packet.data.to_vec())
+            Packet::new(vec![])
         }).await.unwrap()
     }
 }

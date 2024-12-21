@@ -2,7 +2,7 @@
   "network": {
     "interfaces": ["en0"],
     "mode": "file",
-    "pcap_file": "/Users/michealkeines/Downloads/test.pcap"
+    "pcap_file": "/Users/michealkeines/Downloads/coap.pcap"
   },
   "settings": {
     "log_level": "info",

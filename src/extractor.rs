@@ -1,11 +1,10 @@
-use std::net::Ipv4Addr;
-use dashmap::DashSet; // Use DashSet for uniqueness
-
 use std::sync::Arc;
-use crate::packet::ClonablePacket;
+use std::net::Ipv4Addr;
+use dashmap::DashSet;
+use pnet::packet::Packet; // Use DashSet for uniqueness
 use std::hash::{Hash, Hasher};
-use crate::protocol::ProtocolParser;
-use crate::protocol::{MqttParser, HttpParser, CoapParser};
+use crate::packet::ClonablePacket;
+use crate::protocol::{ProtocolParser, MqttParser, HttpParser, CoapParser};
 
 // Struct to hold parsed information for different protocols
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -59,7 +58,6 @@ impl PartialEq for PacketInfo {
     }
 }
 
-
 pub struct InformationExtractor {
     pub db: Arc<DashSet<PacketInfo>>,
     protocol_parsers: Vec<Box<dyn ProtocolParser + Sync + Send>>, // List of protocol parsers
@@ -85,7 +83,7 @@ impl InformationExtractor {
             dst_ip: None,
             src_port: None,
             dst_port: None,
-            protocol_info: None
+            protocol_info: None,
         };
 
         // Extract MAC addresses
@@ -114,11 +112,19 @@ impl InformationExtractor {
             if let Some(tcp) = tcp_packet.parse() {
                 info.src_port = Some(tcp.get_source());
                 info.dst_port = Some(tcp.get_destination());
+
+                // Extract only the TCP payload and pass it to the protocol parsers
+                let tcp_payload = tcp.payload();
+                self.extract_protocol_info(tcp_payload, &mut info);
             }
         } else if let Some(udp_packet) = &packet.udp {
             if let Some(udp) = udp_packet.parse() {
                 info.src_port = Some(udp.get_source());
                 info.dst_port = Some(udp.get_destination());
+
+                // Extract only the UDP payload and pass it to the protocol parsers
+                let udp_payload = udp.payload();
+                self.extract_protocol_info(udp_payload, &mut info);
             }
         }
 
@@ -132,19 +138,19 @@ impl InformationExtractor {
             }
         }
 
-        // Now, parse the protocol-specific data using protocol parsers
+        // Store extracted information in the DashSet (only unique entries will be stored)
+        self.db.insert(info);
+    }
+
+    // Extract protocol-specific data and pass it to protocol parsers
+    fn extract_protocol_info(&self, data: &[u8], info: &mut PacketInfo) {
         for parser in &self.protocol_parsers {
-            if let Some(protocol_info) = parser.parse(&packet.raw) {
+            if let Some(protocol_info) = parser.parse(data) {
                 // Store or process the protocol info
                 println!("Extracted from {}: {}", protocol_info.protocol_name, protocol_info.data);
                 info.protocol_info = Some(protocol_info);
-                break;
             }
         }
-
-       // println!("info: {info:?}");
-        // Store extracted information in the DashSet (only unique entries will be stored)
-        self.db.insert(info);
     }
 
     // Method to retrieve all the unique packet information
@@ -152,4 +158,3 @@ impl InformationExtractor {
         self.db.iter().map(|p| p.clone()).collect()
     }
 }
-
