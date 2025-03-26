@@ -51,7 +51,7 @@ impl TrafficMonitor for FileMonitor {
             let mut cap = cap.lock().expect("Failed to lock PCAP capture");
             let next = cap.next_packet();
             if let Ok(packet) = next {
-                Packet::new(packet.data.to_vec());
+                return Packet::new(packet.data.to_vec());
             }
            // println!("packet: {:?}", packet);
             // Parsing the raw packet
