@@ -39,7 +39,7 @@ async fn main() {
     let mut join_set = JoinSet::new();
 
     if mode == "live" {
-        println!("Running in live monitoring mode. this is getting logged in plain text");
+        println!("Running in live monitoring mode. this is getting logged in plain text, this changed");
         // Start pipelines for each interface in parallel
         for interface in config.network.interfaces {
             let interface_monitor = Arc::new(InterfaceMonitor { device_name: interface.clone() });
