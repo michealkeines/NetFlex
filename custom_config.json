@@ -2,11 +2,12 @@
   "network": {
     "interfaces": ["en0"],
     "mode": "file",
-    "pcap_file": "/Users/michealkeines/Downloads/coap.pcap"
+    "pcap_file": "/Users/michealkeines/Downloads/http.pcap"
   },
   "settings": {
     "log_level": "info",
     "storage_path": "/var/log/network_traffic"
-  }
+  },
+  "output": "assets.json"
 }
 

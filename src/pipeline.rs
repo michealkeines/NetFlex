@@ -1,7 +1,7 @@
+use crate::extractor::{InformationExtractor, PacketInfo}; // Assuming the InformationExtractor is defined in this module.
 use crate::monitors::TrafficMonitor;
 use crate::packet::ClonablePacket as Packet;
 use crate::probe::ProtocolProber;
-use crate::extractor::{InformationExtractor, PacketInfo}; // Assuming the InformationExtractor is defined in this module.
 use std::sync::Arc;
 
 pub struct TrafficPipeline {
@@ -11,7 +11,7 @@ pub struct TrafficPipeline {
 
 impl TrafficPipeline {
     pub async fn process_pipeline(&self) {
-        let info_extractor = Arc::clone(&self.info_extractor);  // Cloning the InformationExtractor reference
+        let info_extractor = Arc::clone(&self.info_extractor); // Cloning the InformationExtractor reference
 
         let ethernet_handle = tokio::spawn({
             let interface_monitor = Arc::clone(&self.interface_monitor);
@@ -23,7 +23,7 @@ impl TrafficPipeline {
                     // Extract information from the packet
                     info_extractor.extract_and_store(&packet);
                     let prober = ProtocolProber::new(info_extractor.db.clone());
-    
+
                     // Run active probing
                     prober.active_probe().await;
                     println!("proobing over");
@@ -38,4 +38,3 @@ impl TrafficPipeline {
         let _ = tokio::join!(ethernet_handle);
     }
 }
-

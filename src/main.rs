@@ -1,24 +1,25 @@
-mod monitors;
-mod pipeline;
+mod asset;
 mod config;
-mod packet;
 mod extractor;
-mod protocol;
+mod monitors;
+mod packet;
+mod pipeline;
 mod probe;
+mod protocol;
 
-use std::sync::Arc;
-use extractor::InformationExtractor;
-use tokio::task::JoinSet;
-use pipeline::TrafficPipeline;
-use monitors::{FileMonitor, InterfaceMonitor};
 use config::{load_config, Config};
+use extractor::InformationExtractor;
+use monitors::{FileMonitor, InterfaceMonitor};
+use pipeline::TrafficPipeline;
+use std::sync::Arc;
+use tokio::task::JoinSet;
 
 #[tokio::main]
 async fn main() {
     // Load config from a custom file
     let config: Config = load_config("custom_config.json").await;
 
-    let info_extractor = Arc::new(InformationExtractor::new());
+    let info_extractor = Arc::new(InformationExtractor::new(config.output));
 
     // Optional: Access future settings (log level, etc.)
     if let Some(settings) = &config.settings {
@@ -39,10 +40,14 @@ async fn main() {
     let mut join_set = JoinSet::new();
 
     if mode == "live" {
-        println!("Running in live monitoring mode. this is getting logged in plain text, this changed");
+        println!(
+            "Running in live monitoring mode. this is getting logged in plain text, this changed"
+        );
         // Start pipelines for each interface in parallel
         for interface in config.network.interfaces {
-            let interface_monitor = Arc::new(InterfaceMonitor { device_name: interface.clone() });
+            let interface_monitor = Arc::new(InterfaceMonitor {
+                device_name: interface.clone(),
+            });
             let pipeline = TrafficPipeline {
                 interface_monitor,
                 info_extractor: Arc::clone(&info_extractor),

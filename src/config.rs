@@ -4,13 +4,14 @@ use tokio::fs;
 #[derive(Deserialize)]
 pub struct Config {
     pub network: NetworkConfig,
-    pub settings: Option<SettingsConfig>,  // Optional for future configurations
+    pub settings: Option<SettingsConfig>, // Optional for future configurations
+    pub output: String,
 }
 
 #[derive(Deserialize)]
 pub struct NetworkConfig {
     pub interfaces: Vec<String>,
-    pub mode: Option<String>,  // Mode to determine live or file monitoring
+    pub mode: Option<String>, // Mode to determine live or file monitoring
     pub pcap_file: Option<String>, // Optional PCAP file for file monitoring mode
 }
 
@@ -25,6 +26,5 @@ pub async fn load_config(file_path: &str) -> Config {
     let config_data = fs::read_to_string(file_path)
         .await
         .expect("Failed to read custom config file.");
-    serde_json::from_str(&config_data)
-        .expect("Failed to parse custom config.")
+    serde_json::from_str(&config_data).expect("Failed to parse custom config.")
 }

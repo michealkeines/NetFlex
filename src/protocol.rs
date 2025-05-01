@@ -3,7 +3,7 @@ use std::str;
 
 // Define a trait for protocol parsers, ensuring it's Sync and Send
 pub trait ProtocolParser: Sync + Send {
-    fn validate(&self, data: &[u8]) -> bool;  // Validation method
+    fn validate(&self, data: &[u8]) -> bool; // Validation method
     fn parse(&self, data: &[u8]) -> Option<ProtocolInfo>;
 }
 
@@ -180,8 +180,10 @@ impl HttpParser {
         if let Ok(http_str) = str::from_utf8(data) {
             let first_line = http_str.lines().next().unwrap_or("");
             // Check if the first word is a valid HTTP method
-            return first_line.starts_with("GET") || first_line.starts_with("POST") ||
-                   first_line.starts_with("PUT") || first_line.starts_with("DELETE");
+            return first_line.starts_with("GET")
+                || first_line.starts_with("POST")
+                || first_line.starts_with("PUT")
+                || first_line.starts_with("DELETE");
         }
         false
     }

@@ -1,8 +1,8 @@
-use std::sync::{Arc, Mutex};
-use pcap::Capture;
-use async_trait::async_trait;
-use tokio::task;
 use crate::packet::ClonablePacket as Packet;
+use async_trait::async_trait;
+use pcap::Capture;
+use std::sync::{Arc, Mutex};
+use tokio::task;
 
 #[async_trait]
 pub trait TrafficMonitor {
@@ -19,14 +19,18 @@ impl TrafficMonitor for InterfaceMonitor {
         task::spawn_blocking({
             let device_name = self.device_name.clone();
             move || {
-                let mut cap = Capture::from_device(&device_name[..]).unwrap()
+                let mut cap = Capture::from_device(&device_name[..])
+                    .unwrap()
                     .immediate_mode(true)
-                    .open().unwrap();
+                    .open()
+                    .unwrap();
                 let packet = cap.next_packet().unwrap();
                 // Parsing the raw packet
                 Packet::new(packet.data.to_vec())
             }
-        }).await.unwrap()
+        })
+        .await
+        .unwrap()
     }
 }
 
@@ -53,9 +57,11 @@ impl TrafficMonitor for FileMonitor {
             if let Ok(packet) = next {
                 return Packet::new(packet.data.to_vec());
             }
-           // println!("packet: {:?}", packet);
+            // println!("packet: {:?}", packet);
             // Parsing the raw packet
             Packet::new(vec![])
-        }).await.unwrap()
+        })
+        .await
+        .unwrap()
     }
 }

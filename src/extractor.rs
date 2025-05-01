@@ -1,13 +1,15 @@
-use std::sync::Arc;
-use std::net::Ipv4Addr;
-use dashmap::DashSet;
-use pnet::packet::Packet; // Use DashSet for uniqueness
-use std::hash::{Hash, Hasher};
+use crate::asset::Asset;
 use crate::packet::ClonablePacket;
-use crate::protocol::{ProtocolParser, MqttParser, HttpParser, CoapParser};
+use crate::protocol::{CoapParser, HttpParser, MqttParser, ProtocolParser};
+use dashmap::DashSet;
+use pnet::packet::Packet;
+use serde::{Deserialize, Serialize}; // Use DashSet for uniqueness
+use std::hash::{Hash, Hasher};
+use std::net::Ipv4Addr;
+use std::sync::Arc;
 
 // Struct to hold parsed information for different protocols
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProtocolInfo {
     pub protocol_name: String,
     pub data: String,
@@ -23,7 +25,7 @@ impl ProtocolInfo {
 }
 
 // Implement Hash and PartialEq for PacketInfo to ensure uniqueness
-#[derive(Debug, Clone, Eq)]
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct PacketInfo {
     pub src_mac: Option<String>,
     pub dst_mac: Option<String>,
@@ -31,7 +33,7 @@ pub struct PacketInfo {
     pub dst_ip: Option<String>,
     pub src_port: Option<u16>,
     pub dst_port: Option<u16>,
-    pub protocol_info: Option<ProtocolInfo>
+    pub protocol_info: Option<ProtocolInfo>,
 }
 
 impl Hash for PacketInfo {
@@ -48,23 +50,24 @@ impl Hash for PacketInfo {
 
 impl PartialEq for PacketInfo {
     fn eq(&self, other: &Self) -> bool {
-        self.src_mac == other.src_mac &&
-        self.dst_mac == other.dst_mac &&
-        self.src_ip == other.src_ip &&
-        self.dst_ip == other.dst_ip &&
-        self.src_port == other.src_port &&
-        self.dst_port == other.dst_port &&
-        self.protocol_info == other.protocol_info
+        self.src_mac == other.src_mac
+            && self.dst_mac == other.dst_mac
+            && self.src_ip == other.src_ip
+            && self.dst_ip == other.dst_ip
+            && self.src_port == other.src_port
+            && self.dst_port == other.dst_port
+            && self.protocol_info == other.protocol_info
     }
 }
 
 pub struct InformationExtractor {
     pub db: Arc<DashSet<PacketInfo>>,
     protocol_parsers: Vec<Box<dyn ProtocolParser + Sync + Send>>, // List of protocol parsers
+    pub output: String,
 }
 
 impl InformationExtractor {
-    pub fn new() -> Self {
+    pub fn new(file: String) -> Self {
         InformationExtractor {
             db: Arc::new(DashSet::new()),
             protocol_parsers: vec![
@@ -72,6 +75,7 @@ impl InformationExtractor {
                 Box::new(CoapParser),
                 Box::new(HttpParser),
             ],
+            output: file,
         }
     }
 
@@ -139,7 +143,12 @@ impl InformationExtractor {
         }
 
         // Store extracted information in the DashSet (only unique entries will be stored)
-        self.db.insert(info);
+        self.db.insert(info.clone());
+
+        // Asset persistence integration
+        let existing_assets = Asset::load_from_file(&self.output);
+        let updated_assets = Asset::analyze_single(&info, existing_assets);
+        Asset::dump_to_file(&updated_assets, &self.output);
     }
 
     // Extract protocol-specific data and pass it to protocol parsers
@@ -147,7 +156,10 @@ impl InformationExtractor {
         for parser in &self.protocol_parsers {
             if let Some(protocol_info) = parser.parse(data) {
                 // Store or process the protocol info
-                println!("Extracted from {}: {}", protocol_info.protocol_name, protocol_info.data);
+                println!(
+                    "Extracted from {}: {}",
+                    protocol_info.protocol_name, protocol_info.data
+                );
                 info.protocol_info = Some(protocol_info);
             }
         }

@@ -1,0 +1,125 @@
+{
+  "00:e0:ed:11:94:a5-192.168.1.2": {
+    "asset_name": "asset-1f515d45-4b83-424b-b311-6bb2e7740fab",
+    "src_mac": "00:e0:ed:11:94:a5",
+    "src_ip": "192.168.1.2",
+    "first_detected": {
+      "secs_since_epoch": 1746089213,
+      "nanos_since_epoch": 157516000
+    },
+    "last_detected": {
+      "secs_since_epoch": 1746093114,
+      "nanos_since_epoch": 615464000
+    },
+    "packet_history": [
+      {
+        "src_mac": "00:e0:ed:11:94:a5",
+        "dst_mac": "00:01:64:f9:1a:02",
+        "src_ip": "192.168.1.2",
+        "dst_ip": "192.168.1.1",
+        "src_port": 80,
+        "dst_port": 50863,
+        "protocol_info": null
+      },
+      {
+        "src_mac": "00:e0:ed:11:94:a5",
+        "dst_mac": "00:01:64:f9:1a:02",
+        "src_ip": "192.168.1.2",
+        "dst_ip": "192.168.1.1",
+        "src_port": 80,
+        "dst_port": 50863,
+        "protocol_info": {
+          "protocol_name": "CoAP",
+          "data": "Type: CON, Code: 2.20, Message ID: 21584, Token Length: 8"
+        }
+      },
+      {
+        "src_mac": "00:e0:ed:11:94:a5",
+        "dst_mac": "00:01:64:f9:1a:02",
+        "src_ip": "192.168.1.2",
+        "dst_ip": "192.168.1.1",
+        "src_port": 80,
+        "dst_port": 50863,
+        "protocol_info": {
+          "protocol_name": "CoAP",
+          "data": "Type: NON, Code: 2.5, Message ID: 20052, Token Length: 4"
+        }
+      },
+      {
+        "src_mac": "00:e0:ed:11:94:a5",
+        "dst_mac": "00:01:64:f9:1a:02",
+        "src_ip": "192.168.1.2",
+        "dst_ip": "192.168.1.1",
+        "src_port": 80,
+        "dst_port": 50863,
+        "protocol_info": null
+      }
+    ],
+    "external_ports_connected_to": [
+      50863
+    ],
+    "protocols_used": [
+      "CoAP"
+    ]
+  },
+  "00:01:64:f9:1a:02-192.168.1.1": {
+    "asset_name": "asset-f8f2c807-1767-4756-a677-a860e594d4f3",
+    "src_mac": "00:01:64:f9:1a:02",
+    "src_ip": "192.168.1.1",
+    "first_detected": {
+      "secs_since_epoch": 1746089211,
+      "nanos_since_epoch": 147721000
+    },
+    "last_detected": {
+      "secs_since_epoch": 1746093112,
+      "nanos_since_epoch": 606786000
+    },
+    "packet_history": [
+      {
+        "src_mac": "00:01:64:f9:1a:02",
+        "dst_mac": "00:e0:ed:11:94:a5",
+        "src_ip": "192.168.1.1",
+        "dst_ip": "192.168.1.2",
+        "src_port": 50863,
+        "dst_port": 80,
+        "protocol_info": null
+      },
+      {
+        "src_mac": "00:01:64:f9:1a:02",
+        "dst_mac": "00:e0:ed:11:94:a5",
+        "src_ip": "192.168.1.1",
+        "dst_ip": "192.168.1.2",
+        "src_port": 50863,
+        "dst_port": 80,
+        "protocol_info": null
+      },
+      {
+        "src_mac": "00:01:64:f9:1a:02",
+        "dst_mac": "00:e0:ed:11:94:a5",
+        "src_ip": "192.168.1.1",
+        "dst_ip": "192.168.1.2",
+        "src_port": 50863,
+        "dst_port": 80,
+        "protocol_info": {
+          "protocol_name": "HTTP",
+          "data": "GET http://www.ups.com/ HTTP/1.1"
+        }
+      },
+      {
+        "src_mac": "00:01:64:f9:1a:02",
+        "dst_mac": "00:e0:ed:11:94:a5",
+        "src_ip": "192.168.1.1",
+        "dst_ip": "192.168.1.2",
+        "src_port": 50863,
+        "dst_port": 80,
+        "protocol_info": null
+      }
+    ],
+    "external_ports_connected_to": [
+      80
+    ],
+    "protocols_used": [
+      "HTTP"
+    ]
+  }
+}
